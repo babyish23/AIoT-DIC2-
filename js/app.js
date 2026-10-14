@@ -12,6 +12,7 @@ const state = {
   problem: null,
   algo: "Lasso (L1 Ranking)",
   k: 2,
+  scheme: null,
   customText: null,
   charts: {},
 };
@@ -53,7 +54,18 @@ function currentModels() {
   return state.problem.algorithms[state.algo];
 }
 
+function formatMse(value) {
+  if (!Number.isFinite(value)) return "—";
+  if (Math.abs(value) >= 100) {
+    return value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  return value.toFixed(4);
+}
+
 function currentModel() {
+  if (state.scheme != null && state.problem.bestSchemes) {
+    return state.problem.bestSchemes[state.scheme];
+  }
   const models = state.algo === COMPARE
     ? flattenModels().filter((item) => item.k === state.k)
     : currentModels();
@@ -104,10 +116,11 @@ function renderPhases() {
 function renderAlgorithms() {
   const names = [...ALGORITHMS, COMPARE];
   $("algorithms").innerHTML = names
-    .map((name) => `<button type="button" data-algo="${name}" class="${name === state.algo ? "active" : ""}">${name}</button>`)
+    .map((name) => `<button type="button" data-algo="${name}" class="${state.scheme == null && name === state.algo ? "active" : ""}">${name}</button>`)
     .join("");
   $("algorithms").querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => {
+      state.scheme = null;
       state.algo = button.dataset.algo;
       const maxK = state.problem.encodedFeatures.length;
       if (state.k > maxK) state.k = maxK;
@@ -133,11 +146,12 @@ function renderMetrics() {
   const model = currentModel();
   const full = state.problem.fullModel;
   const overfit = full.rmse > model.rmse * 1.02;
+  const mse = model.mse == null ? model.rmse ** 2 : model.mse;
   const cards = [
-    ["Test RMSE", money(model.rmse, state.problem.targetUnit === "USD" ? "USD" : ""), "越低越好"],
+    ["Test MSE", formatMse(mse), "越低越好"],
+    ["Test RMSE", money(model.rmse, state.problem.targetUnit === "USD" ? "USD" : ""), "測試集"],
     ["R-squared", model.r2.toFixed(4), "測試集"],
     ["Adjusted R²", model.adjR2 == null ? "—" : model.adjR2.toFixed(4), "懲罰多餘變數"],
-    ["MAE", money(model.mae, state.problem.targetUnit === "USD" ? "USD" : ""), "平均絕對誤差"],
   ];
   $("metrics").innerHTML = cards
     .map(([label, value, hint], index) => {
@@ -301,6 +315,50 @@ function renderResiduals() {
     .join("");
 }
 
+function renderSchemes() {
+  const panel = $("schemes-panel");
+  const schemes = state.problem.bestSchemes;
+  if (!schemes) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+  $("schemes").innerHTML = schemes
+    .map((scheme, index) => {
+      const label = `#${scheme.rank} k=${scheme.k} · ${scheme.features.join(", ")}`;
+      return `<button type="button" data-scheme="${index}" class="${state.scheme === index ? "active" : ""}">${esc(label)}</button>`;
+    })
+    .join("");
+  $("schemes").querySelectorAll("button").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.scheme = Number(button.dataset.scheme);
+      const scheme = state.problem.bestSchemes[state.scheme];
+      state.k = scheme.k;
+      render();
+    });
+  });
+}
+
+function renderTop20() {
+  const panel = $("top20-panel");
+  const rows = state.problem.top20;
+  if (!rows) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+  $("top20-body").innerHTML = rows
+    .map((row) => `<tr class="${state.scheme != null && state.problem.bestSchemes[state.scheme].rank === row.rank ? "active-row" : ""}">
+      <td>${row.rank}</td>
+      <td>${row.k}</td>
+      <td>${esc(formatFeature(row.features))}</td>
+      <td class="num">${formatMse(row.mse)}</td>
+      <td class="num">${row.rmse.toFixed(4)}</td>
+      <td class="num">${row.r2.toFixed(6)}</td>
+    </tr>`)
+    .join("");
+}
+
 function render() {
   const problem = state.problem;
   $("problem-title").textContent = problem.title;
@@ -309,9 +367,11 @@ function render() {
   renderProblemOptions();
   renderPhases();
   renderAlgorithms();
+  renderSchemes();
   renderK();
   renderMetrics();
   renderCharts();
+  renderTop20();
   renderPath();
   renderEquation();
   renderPredictor();
@@ -320,8 +380,13 @@ function render() {
 
 function selectProblem(problem, preferredK) {
   state.problem = problem;
-  state.algo = problem.deployed?.algorithm || "Lasso (L1 Ranking)";
-  state.k = preferredK || problem.deployed?.k || problem.best.k || 2;
+  state.scheme = problem.bestSchemes ? 0 : null;
+  state.algo = problem.algorithms?.["Lasso (L1 Ranking)"]
+    ? "Lasso (L1 Ranking)"
+    : problem.deployed?.algorithm || "Lasso (L1 Ranking)";
+  state.k = problem.bestSchemes
+    ? problem.bestSchemes[0].k
+    : preferredK || problem.deployed?.k || problem.best.k || 2;
   render();
 }
 
@@ -383,6 +448,7 @@ async function init() {
     if (found) selectProblem(found, found.id === "startups" ? 2 : found.best.k);
   });
   $("k-range").addEventListener("input", () => {
+    state.scheme = null;
     state.k = Number($("k-range").value);
     render();
   });

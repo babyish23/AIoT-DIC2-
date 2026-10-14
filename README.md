@@ -6,9 +6,12 @@
 
 ```bash
 pip install -r requirements.txt
+python main.py
 python solve_50_startups.py
 python solve_boston_housing.py
 ```
+
+`python main.py` 會把 31 種特徵組合全部跑完，印出測試 MSE、Top 20，以及最好的 5 組，並寫進網頁。
 
 也可以換成自己的 CSV：
 

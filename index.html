@@ -54,6 +54,12 @@
       <p class="note" id="active-features"></p>
     </section>
 
+    <section class="panel" id="schemes-panel">
+      <h2>最好的 5 組</h2>
+      <p class="note">全部 31 種非空特徵組合都用 sklearn LinearRegression 在同一個測試集上算過，依 Test MSE 由低到高取前 5 名。點一組就會套進下面的係數、預測和殘差。</p>
+      <div class="choices" id="schemes"></div>
+    </section>
+
     <section class="metrics" id="metrics"></section>
 
     <section class="charts">
@@ -64,6 +70,25 @@
       <div class="chart-card">
         <h3>R-squared by Number of Features</h3>
         <canvas id="r2-chart"></canvas>
+      </div>
+    </section>
+
+    <section class="panel" id="top20-panel">
+      <h2>Top 20 feature selection schemes</h2>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>k</th>
+              <th>Selected Features</th>
+              <th class="num">Test MSE</th>
+              <th class="num">Test RMSE</th>
+              <th class="num">R-squared</th>
+            </tr>
+          </thead>
+          <tbody id="top20-body"></tbody>
+        </table>
       </div>
     </section>
 
