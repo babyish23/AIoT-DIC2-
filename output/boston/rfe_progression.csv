@@ -1,0 +1,14 @@
+Number of Features,Selected Features,RMSE,R-squared
+1,['lstat'],6.807077593213252,0.43095672846187605
+2,"['rm', 'lstat']",6.114172522817781,0.5409084827186418
+3,"['rm', 'ptratio', 'lstat']",6.4558492951909,0.48816420156925067
+4,"['rm', 'dis', 'ptratio', 'lstat']",6.254981930954973,0.5195192317657988
+5,"['nox', 'rm', 'dis', 'ptratio', 'lstat']",6.151729011721197,0.5352511939362531
+6,"['nox', 'rm', 'dis', 'tax', 'ptratio', 'lstat']",6.182363615756174,0.5306109226977701
+7,"['nox', 'rm', 'dis', 'rad', 'tax', 'ptratio', 'lstat']",6.05676901019057,0.5494884678445262
+8,"['zn', 'nox', 'rm', 'dis', 'rad', 'tax', 'ptratio', 'lstat']",6.016157744326499,0.5555096668731907
+9,"['crim', 'zn', 'nox', 'rm', 'dis', 'rad', 'tax', 'ptratio', 'lstat']",5.936295538379024,0.5672322210156736
+10,"['crim', 'zn', 'nox', 'rm', 'dis', 'rad', 'tax', 'ptratio', 'b', 'lstat']",5.851638529994966,0.5794875367843877
+11,"['crim', 'zn', 'chas', 'nox', 'rm', 'dis', 'rad', 'tax', 'ptratio', 'b', 'lstat']",5.781366335656917,0.5895267416134664
+12,"['crim', 'zn', 'chas', 'nox', 'rm', 'age', 'dis', 'rad', 'tax', 'ptratio', 'b', 'lstat']",5.784640655018172,0.5890616608498134
+13,"['crim', 'zn', 'indus', 'chas', 'nox', 'rm', 'age', 'dis', 'rad', 'tax', 'ptratio', 'b', 'lstat']",5.783509315085128,0.5892223849182519
